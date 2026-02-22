@@ -1,0 +1,42 @@
+# ==================== 智简衣橱 SmartCloset ====================
+
+# 依赖
+node_modules/
+
+# 构建输出
+dist/
+unpackage/
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 日志
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 本地环境
+.env
+.env.local
+.env.*.local
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 测试
+coverage/
+
+# uni-app
+*.log
+uni-app.log
+
+# Claude
+.claude/

@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import uni from '@dcloudio/vite-plugin-uni'
+import path from 'path'
 
 export default defineConfig({
   plugins: [uni()],
@@ -8,7 +9,14 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': '/src'
+      '@': path.resolve(__dirname, 'src')
+    }
+  },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        additionalData: `@import "@/uni.scss";`
+      }
     }
   }
 })
