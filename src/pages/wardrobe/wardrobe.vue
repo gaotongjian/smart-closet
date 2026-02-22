@@ -30,6 +30,27 @@
       @change="handleCategoryChange"
     />
 
+    <!-- 批量操作工具栏 -->
+    <view v-if="isBatchMode" class="batch-toolbar">
+      <view class="toolbar-left">
+        <view class="checkbox" :class="{ checked: allSelected }" @click="toggleSelectAll">
+          <text v-if="allSelected" class="check-icon">✓</text>
+        </view>
+        <text class="selected-count">已选 {{ selectedItems.length }} 项</text>
+      </view>
+      <view class="toolbar-actions">
+        <view class="toolbar-btn" @click="showCategoryPicker">
+          <text class="btn-text">移动分类</text>
+        </view>
+        <view class="toolbar-btn delete" @click="batchDeleteSelected">
+          <text class="btn-text">删除</text>
+        </view>
+        <view class="toolbar-btn cancel" @click="exitBatchMode">
+          <text class="btn-text">取消</text>
+        </view>
+      </view>
+    </view>
+
     <!-- 衣物列表 -->
     <scroll-view
       class="wardrobe-grid"
@@ -41,9 +62,18 @@
           v-for="(item, index) in filteredItems"
           :key="item.id"
           class="grid-item"
+          :class="{ selected: selectedItems.includes(item.id) }"
           :style="{ animationDelay: `${index * 0.05}s` }"
-          @click="viewDetail(item)"
+          @click="handleItemClick(item)"
+          @longpress="enterBatchMode(item)"
         >
+          <!-- 批量选择checkbox -->
+          <view v-if="isBatchMode" class="item-checkbox" @click.stop="toggleSelect(item.id)">
+            <view class="checkbox" :class="{ checked: selectedItems.includes(item.id) }">
+              <text v-if="selectedItems.includes(item.id)" class="check-icon">✓</text>
+            </view>
+          </view>
+
           <view class="item-image-wrap">
             <image class="item-image" :src="item.image" mode="aspectFill" />
             <view class="item-overlay"></view>
@@ -74,7 +104,7 @@
     </scroll-view>
 
     <!-- 悬浮添加按钮 -->
-    <view class="fab" @click="showAddSheet">
+    <view v-if="!isBatchMode" class="fab" @click="showAddSheet">
       <view class="fab-inner">
         <text class="fab-icon">+</text>
       </view>
@@ -106,6 +136,26 @@
         <view class="modal-cancel" @click="showAddModal = false">取消</view>
       </view>
     </view>
+
+    <!-- 分类选择弹窗 -->
+    <view v-if="showCategoryModal" class="modal-mask" @click="showCategoryModal = false">
+      <view class="modal-content" @click.stop>
+        <view class="modal-header">
+          <text class="modal-title">移动到分类</text>
+        </view>
+        <view class="category-options">
+          <view
+            v-for="cat in categories"
+            :key="cat.id"
+            class="category-option"
+            @click="batchMoveCategory(cat.id)"
+          >
+            <text>{{ cat.name }}</text>
+          </view>
+        </view>
+        <view class="modal-cancel" @click="showCategoryModal = false">取消</view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -113,6 +163,7 @@
 import { ref, computed, onMounted } from 'vue'
 import CategoryFilter from '@/components/category-filter/category-filter.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
+import { batchDelete, batchUpdate } from '@/services/wardrobeService'
 
 const wardrobeStore = useWardrobeStore()
 
@@ -120,6 +171,11 @@ const searchKeyword = ref('')
 const activeCategory = ref('all')
 const showAddModal = ref(false)
 const isLoading = ref(false)
+
+// 批量管理状态
+const isBatchMode = ref(false)
+const selectedItems = ref([])
+const showCategoryModal = ref(false)
 
 const categories = ref([
   { id: 'all', name: '全部' },
@@ -149,6 +205,11 @@ const filteredItems = computed(() => {
   }
 
   return items
+})
+
+const allSelected = computed(() => {
+  return filteredItems.value.length > 0 &&
+    selectedItems.value.length === filteredItems.value.length
 })
 
 onMounted(() => {
@@ -203,6 +264,76 @@ const goToAddPage = (imagePath) => {
 
 const loadMore = () => {
   // 分页加载逻辑
+}
+
+// 批量管理相关
+const handleItemClick = (item) => {
+  if (isBatchMode.value) {
+    toggleSelect(item.id)
+  } else {
+    viewDetail(item)
+  }
+}
+
+const enterBatchMode = (item) => {
+  isBatchMode.value = true
+  selectedItems.value = [item.id]
+}
+
+const exitBatchMode = () => {
+  isBatchMode.value = false
+  selectedItems.value = []
+}
+
+const toggleSelect = (itemId) => {
+  const index = selectedItems.value.indexOf(itemId)
+  if (index > -1) {
+    selectedItems.value.splice(index, 1)
+  } else {
+    selectedItems.value.push(itemId)
+  }
+  // 全部取消时退出多选模式
+  if (selectedItems.value.length === 0) {
+    isBatchMode.value = false
+  }
+}
+
+const toggleSelectAll = () => {
+  if (allSelected.value) {
+    selectedItems.value = []
+  } else {
+    selectedItems.value = filteredItems.value.map(item => item.id)
+  }
+}
+
+const batchDeleteSelected = () => {
+  if (selectedItems.value.length === 0) return
+
+  uni.showModal({
+    title: '确认删除',
+    content: `确定要删除选中的 ${selectedItems.value.length} 件衣物吗？`,
+    success: (res) => {
+      if (res.confirm) {
+        batchDelete(selectedItems.value)
+        uni.showToast({ title: '删除成功', icon: 'success' })
+        exitBatchMode()
+      }
+    }
+  })
+}
+
+const showCategoryPicker = () => {
+  if (selectedItems.value.length === 0) return
+  showCategoryModal.value = true
+}
+
+const batchMoveCategory = (categoryId) => {
+  if (selectedItems.value.length === 0) return
+
+  batchUpdate(selectedItems.value, { category: categoryId })
+  uni.showToast({ title: '移动成功', icon: 'success' })
+  showCategoryModal.value = false
+  exitBatchMode()
 }
 </script>
 
@@ -288,6 +419,68 @@ const loadMore = () => {
   }
 }
 
+.batch-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-sm $spacing-base;
+  background: $white;
+  border-bottom: 1rpx solid $border-color;
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+  }
+
+  .selected-count {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+  }
+
+  .toolbar-actions {
+    display: flex;
+    gap: $spacing-sm;
+  }
+
+  .toolbar-btn {
+    padding: 8rpx 20rpx;
+    background: $primary-color;
+    border-radius: $border-radius-lg;
+
+    &.delete {
+      background: $error-color;
+    }
+
+    &.cancel {
+      background: #999;
+    }
+
+    .btn-text {
+      font-size: $font-size-sm;
+      color: $white;
+    }
+  }
+}
+
+.checkbox {
+  width: 40rpx;
+  height: 40rpx;
+  border: 2rpx solid $border-color;
+  border-radius: 8rpx;
+  @include flex-center;
+
+  &.checked {
+    background: $primary-color;
+    border-color: $primary-color;
+  }
+
+  .check-icon {
+    color: $white;
+    font-size: 24rpx;
+  }
+}
+
 .wardrobe-grid {
   height: calc(100vh - 380rpx);
   padding: 0 $spacing-base;
@@ -300,6 +493,7 @@ const loadMore = () => {
 }
 
 .grid-item {
+  position: relative;
   width: calc(50% - #{$spacing-sm / 2});
   background: $white;
   border-radius: $border-radius-lg;
@@ -309,8 +503,19 @@ const loadMore = () => {
   animation: fadeIn 0.4s ease-out backwards;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 
+  &.selected {
+    box-shadow: 0 0 0 4rpx $primary-color;
+  }
+
   &:active {
     transform: scale(0.98);
+  }
+
+  .item-checkbox {
+    position: absolute;
+    top: $spacing-sm;
+    left: $spacing-sm;
+    z-index: 10;
   }
 
   .item-image-wrap {
@@ -543,6 +748,26 @@ const loadMore = () => {
       font-size: $font-size-xs;
       color: $text-secondary;
       margin-top: 4rpx;
+    }
+  }
+}
+
+.category-options {
+  padding: $spacing-sm;
+
+  .category-option {
+    padding: $spacing-base;
+    text-align: center;
+    font-size: $font-size-base;
+    color: $text-color;
+    border-bottom: 1rpx solid $border-color;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:active {
+      background: #F5F5F5;
     }
   }
 }
