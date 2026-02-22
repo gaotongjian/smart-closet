@@ -4,11 +4,20 @@ import { createPinia, setActivePinia } from 'pinia'
 const pinia = createPinia()
 setActivePinia(pinia)
 
+// 模拟 uni API 存储
+const storage = {}
+
 // 模拟 uni API
 global.uni = {
-  getStorageSync: () => null,
-  setStorageSync: () => {},
-  removeStorageSync: () => {},
+  getStorageSync: (key) => {
+    return storage[key] || null
+  },
+  setStorageSync: (key, value) => {
+    storage[key] = value
+  },
+  removeStorageSync: (key) => {
+    delete storage[key]
+  },
   getLocation: (options) => {
     if (options?.success) {
       options.success({ latitude: 39.9, longitude: 116.4 })
