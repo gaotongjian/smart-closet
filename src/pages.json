@@ -1,0 +1,96 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "今日穿搭"
+      }
+    },
+    {
+      "path": "pages/index/history",
+      "style": {
+        "navigationBarTitleText": "历史穿搭"
+      }
+    },
+    {
+      "path": "pages/wardrobe/wardrobe",
+      "style": {
+        "navigationBarTitleText": "我的衣橱"
+      }
+    },
+    {
+      "path": "pages/wardrobe/detail",
+      "style": {
+        "navigationBarTitleText": "衣物详情"
+      }
+    },
+    {
+      "path": "pages/wardrobe/add",
+      "style": {
+        "navigationBarTitleText": "添加衣物"
+      }
+    },
+    {
+      "path": "pages/outfits/outfits",
+      "style": {
+        "navigationBarTitleText": "搭配灵感"
+      }
+    },
+    {
+      "path": "pages/outfits/detail",
+      "style": {
+        "navigationBarTitleText": "搭配详情"
+      }
+    },
+    {
+      "path": "pages/outfits/create",
+      "style": {
+        "navigationBarTitleText": "创建搭配"
+      }
+    },
+    {
+      "path": "pages/profile/profile",
+      "style": {
+        "navigationBarTitleText": "个人中心"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "智简衣橱",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F5F5F5"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#333333",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "今日穿搭",
+        "iconPath": "static/tab-today.png",
+        "selectedIconPath": "static/tab-today-active.png"
+      },
+      {
+        "pagePath": "pages/wardrobe/wardrobe",
+        "text": "衣橱",
+        "iconPath": "static/tab-wardrobe.png",
+        "selectedIconPath": "static/tab-wardrobe-active.png"
+      },
+      {
+        "pagePath": "pages/outfits/outfits",
+        "text": "搭配",
+        "iconPath": "static/tab-outfit.png",
+        "selectedIconPath": "static/tab-outfit-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "static/tab-profile.png",
+        "selectedIconPath": "static/tab-profile-active.png"
+      }
+    ]
+  }
+}
