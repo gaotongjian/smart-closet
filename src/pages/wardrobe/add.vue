@@ -23,30 +23,63 @@
         </picker>
       </view>
 
+      <!-- 颜色选择 -->
+      <view class="form-item">
+        <text class="form-label">颜色</text>
+        <view class="color-tags">
+          <view
+            v-for="color in colorTags"
+            :key="color.id"
+            class="color-tag"
+            :class="{ active: form.color === color.id }"
+            :style="{ backgroundColor: color.hex }"
+            @click="selectColor(color.id)"
+          >
+            <text v-if="form.color === color.id" class="color-check">✓</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 季节多选 -->
+      <view class="form-item">
+        <text class="form-label">季节（可多选）</text>
+        <view class="tag-group">
+          <view
+            v-for="season in seasonTags"
+            :key="season.id"
+            class="tag-option"
+            :class="{ active: form.seasons?.includes(season.id) }"
+            @click="toggleSeason(season.id)"
+          >
+            {{ season.name }}
+          </view>
+        </view>
+      </view>
+
+      <!-- 场合多选 -->
+      <view class="form-item">
+        <text class="form-label">场合（可多选）</text>
+        <view class="tag-group">
+          <view
+            v-for="occasion in occasionTags"
+            :key="occasion.id"
+            class="tag-option"
+            :class="{ active: form.occasions?.includes(occasion.id) }"
+            @click="toggleOccasion(occasion.id)"
+          >
+            {{ occasion.name }}
+          </view>
+        </view>
+      </view>
+
       <view class="form-item">
         <text class="form-label">品牌</text>
         <input class="form-input" v-model="form.brand" placeholder="请输入品牌（选填）" />
       </view>
 
       <view class="form-item">
-        <text class="form-label">颜色</text>
-        <input class="form-input" v-model="form.color" placeholder="请输入颜色（选填）" />
-      </view>
-
-      <view class="form-item">
-        <text class="form-label">标签</text>
-        <view class="tags-input">
-          <view v-for="(tag, index) in form.tags" :key="index" class="tag">
-            {{ tag }}
-            <text class="tag-remove" @click="removeTag(index)">×</text>
-          </view>
-          <input
-            class="tag-input"
-            v-model="tagInput"
-            placeholder="添加标签"
-            @confirm="addTag"
-          />
-        </view>
+        <text class="form-label">备注</text>
+        <textarea class="form-textarea" v-model="form.remark" placeholder="添加备注（选填）" />
       </view>
     </view>
 
@@ -59,6 +92,7 @@
 <script setup>
 import { ref, computed, onLoad } from '@dcloudio/uni-app'
 import { useWardrobeStore } from '@/stores/wardrobe'
+import { getColorTags, getSeasonTags, getOccasionTags, recommendTags } from '@/services/tagService'
 
 const wardrobeStore = useWardrobeStore()
 
@@ -66,13 +100,20 @@ const form = ref({
   image: '',
   name: '',
   category: '',
-  brand: '',
   color: '',
+  seasons: [],
+  occasions: [],
+  brand: '',
+  remark: '',
   tags: []
 })
 
-const tagInput = ref('')
 const editId = ref(null)
+
+// 标签数据
+const colorTags = ref(getColorTags())
+const seasonTags = ref(getSeasonTags())
+const occasionTags = ref(getOccasionTags())
 
 const categories = ref([
   { id: 'tops', name: '上衣' },
@@ -95,7 +136,11 @@ onLoad((options) => {
     editId.value = options.id
     const item = wardrobeStore.getItemById(options.id)
     if (item) {
-      form.value = { ...item }
+      form.value = {
+        ...item,
+        seasons: item.seasons || [],
+        occasions: item.occasions || []
+      }
     }
   }
 })
@@ -111,18 +156,41 @@ const chooseImage = () => {
 }
 
 const onCategoryChange = (e) => {
-  form.value.category = categories.value[e.detail.value].id
+  const categoryId = categories.value[e.detail.value].id
+  form.value.category = categoryId
+
+  // 智能推荐标签
+  const recommendations = recommendTags(categoryId)
+  form.value.seasons = [...recommendations.seasons]
+  form.value.occasions = [...recommendations.occasions]
 }
 
-const addTag = () => {
-  if (tagInput.value && !form.value.tags.includes(tagInput.value)) {
-    form.value.tags.push(tagInput.value)
-    tagInput.value = ''
+const selectColor = (colorId) => {
+  form.value.color = form.value.color === colorId ? '' : colorId
+}
+
+const toggleSeason = (seasonId) => {
+  if (!form.value.seasons) {
+    form.value.seasons = []
+  }
+  const index = form.value.seasons.indexOf(seasonId)
+  if (index > -1) {
+    form.value.seasons.splice(index, 1)
+  } else {
+    form.value.seasons.push(seasonId)
   }
 }
 
-const removeTag = (index) => {
-  form.value.tags.splice(index, 1)
+const toggleOccasion = (occasionId) => {
+  if (!form.value.occasions) {
+    form.value.occasions = []
+  }
+  const index = form.value.occasions.indexOf(occasionId)
+  if (index > -1) {
+    form.value.occasions.splice(index, 1)
+  } else {
+    form.value.occasions.push(occasionId)
+  }
 }
 
 const submitForm = () => {
@@ -139,11 +207,18 @@ const submitForm = () => {
     return
   }
 
+  // 整理标签数据
+  const submitData = {
+    ...form.value,
+    // 将颜色ID转换为颜色名称
+    colorName: form.value.color ? colorTags.value.find(c => c.id === form.value.color)?.name : ''
+  }
+
   if (editId.value) {
-    wardrobeStore.updateItem(editId.value, form.value)
+    wardrobeStore.updateItem(editId.value, submitData)
     uni.showToast({ title: '修改成功', icon: 'success' })
   } else {
-    wardrobeStore.addItem(form.value)
+    wardrobeStore.addItem(submitData)
     uni.showToast({ title: '添加成功', icon: 'success' })
   }
 
@@ -198,7 +273,7 @@ const submitForm = () => {
 }
 
 .form-item {
-  margin-bottom: $spacing-base;
+  margin-bottom: $spacing-lg;
 
   .form-label {
     font-size: $font-size-base;
@@ -215,6 +290,15 @@ const submitForm = () => {
     font-size: $font-size-base;
   }
 
+  .form-textarea {
+    width: 100%;
+    min-height: 120rpx;
+    padding: $spacing-base;
+    background: #F5F5F5;
+    border-radius: $border-radius-base;
+    font-size: $font-size-base;
+  }
+
   .picker-value {
     height: 80rpx;
     padding: 0 $spacing-base;
@@ -225,35 +309,50 @@ const submitForm = () => {
   }
 }
 
-.tags-input {
+.color-tags {
   display: flex;
   flex-wrap: wrap;
   gap: $spacing-sm;
-  min-height: 80rpx;
-  padding: $spacing-sm;
-  background: #F5F5F5;
-  border-radius: $border-radius-base;
 
-  .tag {
-    display: flex;
-    align-items: center;
-    padding: 8rpx 16rpx;
-    background: $primary-color;
-    color: $white;
-    border-radius: 8rpx;
-    font-size: $font-size-sm;
+  .color-tag {
+    width: 56rpx;
+    height: 56rpx;
+    border-radius: 50%;
+    @include flex-center;
+    border: 2rpx solid transparent;
+    transition: all 0.2s ease;
 
-    .tag-remove {
-      margin-left: 8rpx;
-      font-size: 28rpx;
+    &.active {
+      border-color: $primary-color;
+      box-shadow: 0 0 0 4rpx rgba(201, 168, 108, 0.3);
+    }
+
+    .color-check {
+      color: #fff;
+      font-size: 24rpx;
+      font-weight: bold;
+      text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
     }
   }
+}
 
-  .tag-input {
-    flex: 1;
-    min-width: 120rpx;
-    height: 56rpx;
+.tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+
+  .tag-option {
+    padding: 12rpx 24rpx;
+    background: #F5F5F5;
+    border-radius: $border-radius-lg;
     font-size: $font-size-sm;
+    color: $text-secondary;
+    transition: all 0.2s ease;
+
+    &.active {
+      background: linear-gradient(135deg, $primary-color, $primary-dark);
+      color: $white;
+    }
   }
 }
 
@@ -268,7 +367,7 @@ const submitForm = () => {
 
   .btn-submit {
     height: 88rpx;
-    background: $primary-color;
+    background: linear-gradient(135deg, $primary-color 0%, $primary-dark 100%);
     color: $white;
     border-radius: $border-radius-lg;
     font-size: $font-size-lg;
