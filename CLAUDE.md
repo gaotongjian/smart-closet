@@ -1,155 +1,155 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+本文件为 Claude Code (claude.ai/code) 在本项目中工作时提供指导。
 
-## Project Overview
+## 项目概览
 
-SmartCloset (智简衣橱) - A uni-app based wardrobe management mini-program with H5 support.
+SmartCloset（智简衣橱）- 基于 uni-app 的衣橱管理小程序，支持 H5 端。
 
-## Commands
+## 命令
 
 ```bash
-# Development
-npm run dev:h5        # Start H5 dev server (port 3000)
-npm run dev:mp-weixin # Start WeChat mini-program dev server
+# 开发
+npm run dev:h5        # 启动 H5 开发服务器（端口 3000）
+npm run dev:mp-weixin # 启动微信小程序开发服务器
 
-# Build
-npm run build:h5        # Build H5 version
-npm run build:mp-weixin # Build WeChat mini-program
+# 构建
+npm run build:h5        # 构建 H5 版本
+npm run build:mp-weixin # 构建微信小程序
 
-# Testing
-npm test           # Run all tests (vitest)
-npm run test:watch # Run tests in watch mode
+# 测试
+npm test           # 运行所有测试（vitest）
+npm run test:watch # 监听模式运行测试
 ```
 
-## Architecture
+## 架构
 
-### Tech Stack
-- **Framework**: uni-app with Vue 3 (Composition API)
-- **State Management**: Pinia
-- **Styling**: SCSS with global variables
-- **Testing**: vitest with jsdom
-- **Build**: Vite
+### 技术栈
+- **框架**: uni-app + Vue 3（Composition API）
+- **状态管理**: Pinia
+- **样式**: SCSS 全局变量
+- **测试**: vitest + jsdom
+- **构建**: Vite
 
-### Directory Structure
+### 目录结构
 
 ```
 src/
-├── pages/           # Page components
-│   ├── index/      # Home page (今日穿搭)
-│   ├── wardrobe/  # Wardrobe management (衣橱)
-│   ├── outfits/   # Outfit management (搭配)
-│   └── profile/   # User profile (我的)
-├── components/     # Reusable components
+├── pages/           # 页面组件
+│   ├── index/      # 首页（今日穿搭）
+│   ├── wardrobe/  # 衣橱管理
+│   ├── outfits/   # 搭配管理
+│   └── profile/   # 个人中心
+├── components/     # 公共组件
 │   ├── weather-widget/
 │   └── category-filter/
-├── stores/         # Pinia state stores
-│   ├── wardrobe.js   # Wardrobe data & operations
-│   ├── outfit.js     # Outfit data & operations
-│   ├── weather.js    # Weather data with mock API
-│   └── user.js       # User profile data
-├── services/      # Business logic layer
-│   ├── api.js        # Base API client
-│   ├── upload.js     # Image upload
-│   ├── tagService.js # Smart tag recommendations
-│   └── wardrobeService.js # Wardrobe CRUD operations
-└── uni.scss       # Global SCSS variables & mixins
+├── stores/         # Pinia 状态管理
+│   ├── wardrobe.js   # 衣橱数据与操作
+│   ├── outfit.js     # 搭配数据与操作
+│   ├── weather.js    # 天气数据（Mock API）
+│   └── user.js       # 用户数据
+├── services/      # 业务逻辑层
+│   ├── api.js        # 基础 API 客户端
+│   ├── upload.js     # 图片上传
+│   ├── tagService.js # 智能标签推荐
+│   └── wardrobeService.js # 衣橱 CRUD 操作
+└── uni.scss       # 全局 SCSS 变量与混合宏
 ```
 
-### Key Patterns
+### 关键模式
 
-**Vue Composition API**: Use `<script setup>` with `ref`, `computed` from `vue`. For uni-app lifecycle hooks (`onLoad`), import from `@dcloudio/uni-app`.
+**Vue Composition API**: 使用 `<script setup>`，其中 `ref`、`computed` 从 `vue` 导入。uni-app 生命周期钩子（`onLoad`）从 `@dcloudio/uni-app` 导入。
 
-**SCSS Variables**: All style variables are in `src/uni.scss`. These are globally injected via vite.config.js - no need to import manually in components.
+**SCSS 变量**: 所有样式变量在 `src/uni.scss` 中定义。通过 vite.config.js 全局注入 - 无需在组件中手动导入。
 
-**Pinia Stores**: Each domain has a store in `src/stores/`. Use `defineStore` with Composition API syntax.
+**Pinia Stores**: 每个领域在 `src/stores/` 中有对应的 store。使用 Composition API 语法编写。
 
-**Data Flow**: Pages → Services → Stores → LocalStorage (uni.getStorageSync)
+**数据流**: 页面 → Services → Stores → LocalStorage（uni.getStorageSync）
 
-## Development Workflow
+## 开发工作流
 
-### Ralph Loop (AI Pair Programming)
+### Ralph Loop（AI 配对编程）
 
-Ralph Loop implements the Ralph Wiggum technique - an iterative development methodology based on continuous AI loops.
+Ralph Loop 实现了一种基于连续 AI 循环的迭代开发方法论。
 
-**Core Concept:**
+**核心概念：**
 ```bash
 while :; do
   cat PROMPT.md | claude-code --continue
 done
 ```
 
-The same prompt is fed to Claude repeatedly. Each iteration sees previous work in files and git history.
+相同的提示词会被重复发送给 Claude。每次迭代都能看到文件中之前的改动和 git 历史。
 
-**Available Commands:**
+**可用命令：**
 ```bash
-/ralph-loop "<TASK>" --max-iterations 20           # Start Ralph Loop with max iterations
-/ralph-loop "<TASK>" --completion-promise "DONE"   # Loop until promise detected
-/cancel-ralph                                        # Cancel active loop
-/ralph-loop help                                     # Show help
+/ralph-loop "<任务>" --max-iterations 20           # 启动 Ralph Loop，设置最大迭代次数
+/ralph-loop "<任务>" --completion-promise "完成"   # 循环直到检测到承诺语句
+/cancel-ralph                                        # 取消活跃的循环
+/ralph-loop help                                     # 显示帮助
 ```
 
-**How It Works:**
-1. Start with `/ralph-loop "Your task description" --completion-promise "COMPLETE"`
-2. Claude works on the task
-3. When you try to exit, stop hook intercepts
-4. Same prompt fed back - Claude sees its previous work
-5. Continues iteratively until `<promise>COMPLETE</promise>` detected
+**工作原理：**
+1. 使用 `/ralph-loop "任务描述" --completion-promise "完成"` 启动
+2. Claude 执行任务
+3. 当尝试退出时，stop hook 会拦截
+4. 相同的提示词再次发送 - Claude 能看到之前的工作
+5. 持续迭代直到检测到 `<promise>完成</promise>`
 
-**Completion Signal:**
-To end a Ralph loop, output:
+**完成信号：**
+要结束 Ralph Loop，输出：
 ```
-<promise>TASK COMPLETE</promise>
-```
-
-**Ralph Loop Workflow in This Project:**
-```
-1. /ralph-loop "Add user profile feature" --completion-promise "DONE"
-2. Write tests first (TDD)
-3. Implement feature
-4. Run tests to verify
-5. Output <promise>DONE</promise> when complete
+<promise>任务完成</promise>
 ```
 
-**When to Use Ralph:**
-- ✅ Well-defined tasks with clear success criteria
-- ✅ Tasks requiring iteration and refinement
-- ✅ Iterative development with self-correction
-- ❌ Tasks requiring human judgment or design decisions
-- ❌ One-shot operations
+**Ralph Loop 工作流：**
+```
+1. /ralph-loop "添加用户资料功能" --completion-promise "完成"
+2. 先写测试（TDD 模式）
+3. 实现功能
+4. 运行测试验证
+5. 功能完成后输出 <promise>完成</promise>
+```
 
-### Git Worktree (Parallel Development)
+**适用场景：**
+- ✅ 目标明确的任务，有清晰的完成标准
+- ✅ 需要迭代和打磨的任务
+- ✅ 支持自纠正的迭代开发
+- ❌ 需要人工判断或设计决策的任务
+- ❌ 一次性操作
 
-For isolated feature development without affecting main codebase:
+### Git Worktree（并行开发）
+
+用于在隔离环境中开发功能，不影响主代码库：
 
 ```bash
-# Create a new worktree for feature development
+# 为功能开发创建新的 worktree
 git worktree add ../smart-closet-feature -b feature/your-feature-name
 
-# List all worktrees
+# 列出所有 worktree
 git worktree list
 
-# Remove a worktree after merge
+# 合并后移除 worktree
 git worktree remove ../smart-closet-feature
 ```
 
-**Worktree Workflow**:
-1. Create worktree: `git worktree add ../smart-closet-feature -b feature/xxx`
-2. Navigate to worktree: `cd ../smart-closet-feature`
-3. Develop and test in isolation
-4. Commit changes
-5. Merge or PR back to main
-6. Remove worktree: `git worktree remove ../smart-closet-feature`
+**Worktree 工作流：**
+1. 创建 worktree：`git worktree add ../smart-closet-feature -b feature/xxx`
+2. 进入目录：`cd ../smart-closet-feature`
+3. 隔离开发测试
+4. 提交更改
+5. 合并或 PR 回 main
+6. 清理：`git worktree remove ../smart-closet-feature`
 
-**Skill Invocation Pattern**:
+**Skill 调用模式：**
 ```
 1. Brainstorming → Writing Plans → Executing Plans → Finishing
-2. For each task: TDD → Implementation → Code Review → Commit
+2. 每个任务：TDD → 实现 → 代码审查 → 提交
 ```
 
-## Important Notes
+## 重要说明
 
-- The app uses local storage (`uni.getStorageSync`) for persistence - no real backend yet
-- Weather data uses mock API in `stores/weather.js`
-- Tests are in `tests/` directory with the same structure as `src/`
-- SASS deprecation warnings about `/` division are known - they don't affect functionality
+- 应用使用本地存储（`uni.getStorageSync`）持久化数据，暂无真实后端
+- 天气数据使用 `stores/weather.js` 中的 Mock API
+- 测试文件在 `tests/` 目录，结构与 `src/` 对应
+- SASS 除法警告（`/`）是已知问题，不影响功能
