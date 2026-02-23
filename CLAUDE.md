@@ -66,6 +66,56 @@ src/
 
 **Data Flow**: Pages → Services → Stores → LocalStorage (uni.getStorageSync)
 
+## Development Workflow
+
+### Ralph Loop (AI Pair Programming)
+
+This project uses **Ralph Loop** for AI-assisted development:
+
+```bash
+# Start Ralph Loop in current session
+/ralph-loop
+
+# Available commands:
+/ralph-loop help     # Show all commands
+/ralph-loop cancel   # Cancel active session
+```
+
+**Ralph Loop Workflow**:
+1. Use brainstorming skill before implementing new features
+2. Use systematic-debugging when fixing bugs
+3. Use TDD (test-driven-development) for new features
+4. Request code review before committing
+
+### Git Worktree (Parallel Development)
+
+For isolated feature development without affecting main codebase:
+
+```bash
+# Create a new worktree for feature development
+git worktree add ../smart-closet-feature -b feature/your-feature-name
+
+# List all worktrees
+git worktree list
+
+# Remove a worktree after merge
+git worktree remove ../smart-closet-feature
+```
+
+**Worktree Workflow**:
+1. Create worktree: `git worktree add ../smart-closet-feature -b feature/xxx`
+2. Navigate to worktree: `cd ../smart-closet-feature`
+3. Develop and test in isolation
+4. Commit changes
+5. Merge or PR back to main
+6. Remove worktree: `git worktree remove ../smart-closet-feature`
+
+**Skill Invocation Pattern**:
+```
+1. Brainstorming → Writing Plans → Executing Plans → Finishing
+2. For each task: TDD → Implementation → Code Review → Commit
+```
+
 ## Important Notes
 
 - The app uses local storage (`uni.getStorageSync`) for persistence - no real backend yet
