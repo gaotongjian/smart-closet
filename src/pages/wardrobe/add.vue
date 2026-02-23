@@ -90,7 +90,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onLoad } from '@dcloudio/uni-app'
+import { ref, computed } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { getColorTags, getSeasonTags, getOccasionTags, recommendTags } from '@/services/tagService'
 

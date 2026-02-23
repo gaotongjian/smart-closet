@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from '@dcloudio/uni-app'
+import { ref, onMounted } from 'vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { getColorTags, getSeasonTags, getOccasionTags } from '@/services/tagService'
 
