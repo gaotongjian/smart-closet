@@ -70,22 +70,53 @@ src/
 
 ### Ralph Loop (AI Pair Programming)
 
-This project uses **Ralph Loop** for AI-assisted development:
+Ralph Loop implements the Ralph Wiggum technique - an iterative development methodology based on continuous AI loops.
 
+**Core Concept:**
 ```bash
-# Start Ralph Loop in current session
-/ralph-loop
-
-# Available commands:
-/ralph-loop help     # Show all commands
-/ralph-loop cancel   # Cancel active session
+while :; do
+  cat PROMPT.md | claude-code --continue
+done
 ```
 
-**Ralph Loop Workflow**:
-1. Use brainstorming skill before implementing new features
-2. Use systematic-debugging when fixing bugs
-3. Use TDD (test-driven-development) for new features
-4. Request code review before committing
+The same prompt is fed to Claude repeatedly. Each iteration sees previous work in files and git history.
+
+**Available Commands:**
+```bash
+/ralph-loop "<TASK>" --max-iterations 20           # Start Ralph Loop with max iterations
+/ralph-loop "<TASK>" --completion-promise "DONE"   # Loop until promise detected
+/cancel-ralph                                        # Cancel active loop
+/ralph-loop help                                     # Show help
+```
+
+**How It Works:**
+1. Start with `/ralph-loop "Your task description" --completion-promise "COMPLETE"`
+2. Claude works on the task
+3. When you try to exit, stop hook intercepts
+4. Same prompt fed back - Claude sees its previous work
+5. Continues iteratively until `<promise>COMPLETE</promise>` detected
+
+**Completion Signal:**
+To end a Ralph loop, output:
+```
+<promise>TASK COMPLETE</promise>
+```
+
+**Ralph Loop Workflow in This Project:**
+```
+1. /ralph-loop "Add user profile feature" --completion-promise "DONE"
+2. Write tests first (TDD)
+3. Implement feature
+4. Run tests to verify
+5. Output <promise>DONE</promise> when complete
+```
+
+**When to Use Ralph:**
+- ✅ Well-defined tasks with clear success criteria
+- ✅ Tasks requiring iteration and refinement
+- ✅ Iterative development with self-correction
+- ❌ Tasks requiring human judgment or design decisions
+- ❌ One-shot operations
 
 ### Git Worktree (Parallel Development)
 
